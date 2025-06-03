@@ -1,4 +1,4 @@
-package com.taskmanager.service;
+package com.taskmanager.service.imp;
 
 import com.taskmanager.model.User;
 import com.taskmanager.model.dto.UserDTO;
@@ -7,24 +7,24 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthService {
 
     @Autowired
     private UserRepository userRepository;
 
-    public void login() {
+    public String cadastro(User user){
 
-    }
-
-    public String cadastro(UserDTO dtoUser){
-        User userModel = new User();
-        BeanUtils.copyProperties(dtoUser, userModel);
-
-        if (userModel.getEmail() != null){
-            userRepository.save(userModel);
+        if (user.getEmail() != null){
+            userRepository.save(user);
             return "Cadastro realizado com sucesso!";
         }
         return "Erro ao cadastrar usuário!";
+    }
+
+    public Optional<User> findByLogin(String email) {
+        return Optional.ofNullable(userRepository.findByEmail(email));
     }
 }

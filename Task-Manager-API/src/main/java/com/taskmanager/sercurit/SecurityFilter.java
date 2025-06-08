@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,20 +27,28 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Autowired
     private UserRepository repository;
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String token = extrairTokenHeader(request);
 
         if (token != null) {
             try {
                 String login = authenticationService.validToken(token);
-                Optional<User> user = Optional.ofNullable(repository.findByEmail(login));
+                Optional<User> user = repository.findByEmail(login);
 
                 if (user.isPresent()) {
-                    var authentication = new UsernamePasswordAuthenticationToken(user.get(), null, user.get().getAuthorities());
+                    User userDetails = user.get();
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-            } catch (TokenExpiredException e) {
-                handleTokenExpiration(token);
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext();
+                e.printStackTrace();
             }
         }
 
@@ -61,7 +70,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private void handleTokenExpiration(String token) {
         String login = authenticationService.getLoginFromExpiredToken(token);
-        Optional<User> user = Optional.ofNullable(repository.findByEmail(login));
+        Optional<User> user = repository.findByEmail(login);
         user.ifPresent(u -> {
             repository.save(u);
         });

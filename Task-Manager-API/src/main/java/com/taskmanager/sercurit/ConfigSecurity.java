@@ -29,7 +29,8 @@ public class ConfigSecurity {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/public/**", "/h2-console/**").permitAll()
+                        .requestMatchers("/auth/**", "/h2-console/**").permitAll()
+                        .requestMatchers("/task/**").hasAnyAuthority("ADMIN", "USER")
                         .anyRequest().authenticated()
                 )
                 .headers(AbstractHttpConfigurer::disable)

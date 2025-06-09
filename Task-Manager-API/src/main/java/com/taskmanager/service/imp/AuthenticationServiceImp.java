@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Optional;
 
 @Service
 public class AuthenticationServiceImp implements AuthenticationService {
@@ -29,12 +30,13 @@ public class AuthenticationServiceImp implements AuthenticationService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = repository.findByEmail(username);
+        Optional<User> user = repository.findByEmail(username);
 
-        if (user == null) {
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("Usuário não encontrado com o email: " + username);
         }
 
-        return user;
+        return user.get();
     }
     @Override
     public String login(LoginDTO dto) {
@@ -54,7 +56,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
             Algorithm algorithm = Algorithm.HMAC256("my-secret");
             return JWT.require(algorithm)
-                    .withIssuer("Task")
+                    .withIssuer("task")
                     .build()
                     .verify(token)
                     .getSubject();
@@ -88,7 +90,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
         try {
             Algorithm algorithm = Algorithm.HMAC256("my-secret");
             return JWT.require(algorithm)
-                    .withIssuer("gerenciar-biblioteca-spring")
+                    .withIssuer("task")
                     .build()
                     .verify(token)
                     .getSubject();

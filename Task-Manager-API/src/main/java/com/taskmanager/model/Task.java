@@ -21,6 +21,7 @@ public class Task {
     private Long id;
     private String titulo;
     private String descricao;
+    @Enumerated(EnumType.STRING)
     private Status status;
     private LocalDateTime dataConclucao;
     private LocalDateTime dataCriacao;

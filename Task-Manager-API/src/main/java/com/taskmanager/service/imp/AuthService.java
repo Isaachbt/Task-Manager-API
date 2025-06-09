@@ -25,6 +25,10 @@ public class AuthService {
     }
 
     public Optional<User> findByLogin(String email) {
-        return Optional.ofNullable(userRepository.findByEmail(email));
+        return userRepository.findByEmail(email);
+    }
+
+    public boolean userExists(long iduser) {
+        return userRepository.findById(iduser).isPresent();
     }
 }
